@@ -51,8 +51,8 @@ type CommonConfig struct {
 
 func AddCommonFlags(cmd *cobra.Command, cfg *CommonConfig) {
 	cmd.PersistentFlags().StringVar(&cfg.ClusterName, "cluster-name", "", "cluster name")
-	cmd.PersistentFlags().StringVar(&cfg.StoreBackend, "store-backend", "", "store backend type (etcdv2/etcd, etcdv3, consul or kubernetes)")
-	cmd.PersistentFlags().StringVar(&cfg.StoreEndpoints, "store-endpoints", "", "a comma-delimited list of store endpoints (use https scheme for tls communication) (defaults: http://127.0.0.1:2379 for etcd, http://127.0.0.1:8500 for consul)")
+	cmd.PersistentFlags().StringVar(&cfg.StoreBackend, "store-backend", "", "store backend type (etcdv2/etcd, etcdv3, consul, kubernetes or zookeeper)")
+	cmd.PersistentFlags().StringVar(&cfg.StoreEndpoints, "store-endpoints", "", "a comma-delimited list of store endpoints (use https scheme for tls communication) (defaults: http://127.0.0.1:2379 for etcd, http://127.0.0.1:8500 for consul, tcp://127.0.0.1:2181 for zookeeper)")
 	cmd.PersistentFlags().StringVar(&cfg.StorePrefix, "store-prefix", common.StorePrefix, "the store base prefix")
 	cmd.PersistentFlags().StringVar(&cfg.StoreCertFile, "store-cert-file", "", "certificate file for client identification to the store")
 	cmd.PersistentFlags().StringVar(&cfg.StoreKeyFile, "store-key", "", "private key file for client identification to the store")
@@ -89,6 +89,7 @@ func CheckCommonConfig(cfg *CommonConfig) error {
 		cfg.StoreBackend = "etcdv2"
 	case "etcdv2":
 	case "etcdv3":
+	case "zookeeper":
 	case "kubernetes":
 		if cfg.KubeResourceKind == "" {
 			return fmt.Errorf("unspecified kubernetes resource kind")
@@ -129,6 +130,8 @@ func NewStore(cfg *CommonConfig) (store.Store, error) {
 	case "consul":
 		fallthrough
 	case "etcdv2":
+		fallthrough
+	case "zookeeper":
 		fallthrough
 	case "etcdv3":
 		storePath := filepath.Join(cfg.StorePrefix, cfg.ClusterName)
@@ -175,6 +178,8 @@ func NewElection(cfg *CommonConfig, uid string) (store.Election, error) {
 	case "consul":
 		fallthrough
 	case "etcdv2":
+		fallthrough
+	case "zookeeper":
 		fallthrough
 	case "etcdv3":
 		storePath := filepath.Join(cfg.StorePrefix, cfg.ClusterName)

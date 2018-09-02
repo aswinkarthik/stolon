@@ -69,6 +69,7 @@ require (
 	github.com/prometheus/common v0.0.0-20180326160409-38c53a9f4bfc // indirect
 	github.com/prometheus/procfs v0.0.0-20180408092902-8b1c2da0d56d // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
+	github.com/samuel/go-zookeeper v0.0.0-20180130194729-c4fab1ac1bec
 	github.com/satori/go.uuid v1.1.0
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sgotti/gexpect v0.0.0-20161123102107-0afc6c19f50a

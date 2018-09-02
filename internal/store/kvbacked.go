@@ -37,9 +37,10 @@ import (
 type Backend string
 
 const (
-	CONSUL Backend = "consul"
-	ETCDV2 Backend = "etcdv2"
-	ETCDV3 Backend = "etcdv3"
+	CONSUL    Backend = "consul"
+	ETCDV2    Backend = "etcdv2"
+	ETCDV3    Backend = "etcdv3"
+	ZOOKEEPER Backend = "zookeeper"
 )
 
 const (
@@ -53,8 +54,9 @@ const (
 )
 
 const (
-	DefaultEtcdEndpoints   = "http://127.0.0.1:2379"
-	DefaultConsulEndpoints = "http://127.0.0.1:8500"
+	DefaultEtcdEndpoints      = "http://127.0.0.1:2379"
+	DefaultConsulEndpoints    = "http://127.0.0.1:8500"
+	DefaultZookeeperEndpoints = "tcp://127.0.0.1:2181"
 )
 
 const (
@@ -114,6 +116,7 @@ func NewKVStore(cfg Config) (KVStore, error) {
 	case ETCDV2:
 		kvBackend = libkvstore.ETCD
 	case ETCDV3:
+	case ZOOKEEPER:
 	default:
 		return nil, fmt.Errorf("Unknown store backend: %q", cfg.Backend)
 	}
@@ -125,6 +128,8 @@ func NewKVStore(cfg Config) (KVStore, error) {
 			endpointsStr = DefaultConsulEndpoints
 		case ETCDV2, ETCDV3:
 			endpointsStr = DefaultEtcdEndpoints
+		case ZOOKEEPER:
+			endpointsStr = DefaultZookeeperEndpoints
 		}
 	}
 	endpoints := strings.Split(endpointsStr, ",")
@@ -160,8 +165,8 @@ func NewKVStore(cfg Config) (KVStore, error) {
 	}
 
 	var tlsConfig *tls.Config
-	if scheme != "http" && scheme != "https" {
-		return nil, fmt.Errorf("endpoints scheme must be http or https")
+	if scheme != "http" && scheme != "https" && scheme != "tcp" {
+		return nil, fmt.Errorf("endpoints scheme must be tcp, http or https")
 	}
 	if scheme == "https" {
 		var err error
@@ -194,6 +199,8 @@ func NewKVStore(cfg Config) (KVStore, error) {
 			return nil, err
 		}
 		return &etcdV3Store{c: c, requestTimeout: cluster.DefaultStoreTimeout}, nil
+	case ZOOKEEPER:
+		return newZookeeperStore(addrs, cluster.DefaultStoreTimeout)
 	default:
 		return nil, fmt.Errorf("Unknown store backend: %q", cfg.Backend)
 	}
